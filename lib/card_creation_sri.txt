@@ -1,0 +1,748 @@
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
+class ApiCardScreen extends StatefulWidget {
+  final String url;
+
+  const ApiCardScreen({required this.url});
+
+  @override
+  _ApiCardScreenState createState() => _ApiCardScreenState();
+}
+
+Set<int> sett = {};
+
+class _ApiCardScreenState extends State<ApiCardScreen> {
+  List<dynamic> users = [];
+
+  @override
+  void initState() {
+    super.initState();
+    gettr();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade900,
+      appBar: AppBar(
+        title: Text(
+          'API Cards',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.grey.shade900, // Same as body color
+        elevation: 0, // Remove shadow
+        iconTheme: IconThemeData(
+          color: Colors.white, // Change pop arrow color to white
+        ),
+      ),
+      body: users.isNotEmpty
+          ? ListView.builder(
+              itemBuilder: (BuildContext context, int index) {
+                final user = users[index];
+
+                return GestureDetector(
+                  onTap: () {
+                    final url = user['url'] ?? '';
+                    if (url.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => WebViewScreen(url: url),
+                        ),
+                      );
+                    }
+                  },
+                  child: cardCreate(
+                    context,
+                    title: user['title'] ?? 'No Title',
+                    description: user['description'] ?? 'No Description',
+                    author: user['author'] ?? 'No Author',
+                    content_url: user['url'] ?? '',
+                    img_url:
+                        user['urlToImage'] ?? 'https://via.placeholder.com/150',
+                    // content: user['content'] ?? 'No Content',
+                    //tagline: 'Its a tagline example ${index}',
+                    time: user['publishedAt'] ?? 'Null',
+                    index: index,
+                    sett: sett,
+                  ),
+                );
+              },
+              // separatorBuilder: (BuildContext context, int index) {
+              //   return Divider(
+              //     indent: 10,
+              //     endIndent: 10,
+              //   );
+              // },
+              itemCount: users.length,
+            )
+          : Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Future<void> gettr() async {
+    final uri = Uri.parse(widget.url);
+    final response = await http.get(uri);
+    if (response.statusCode == 200) {
+      final body = response.body;
+      final json = jsonDecode(body);
+      setState(() {
+        users = json['articles'];
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+
+class WebViewScreen extends StatelessWidget {
+  final String url;
+
+  const WebViewScreen({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Web View'),
+      ),
+      body: InAppWebView(
+        initialUrlRequest: URLRequest(url: WebUri.uri(Uri.parse(url))),
+        initialSettings: InAppWebViewSettings(
+          useShouldOverrideUrlLoading: true,
+          mediaPlaybackRequiresUserGesture: false,
+        ),
+        onWebViewCreated: (InAppWebViewController controller) {},
+        onLoadStart: (InAppWebViewController controller, Uri? url) {},
+        onLoadStop: (InAppWebViewController controller, Uri? url) async {},
+        onReceivedError: (InAppWebViewController controller,
+            WebResourceRequest request, WebResourceError error) {
+          // Handle the error
+          print('Error: ${error.description}');
+        },
+        shouldOverrideUrlLoading: (controller, navigationAction) async {
+          return NavigationActionPolicy.ALLOW;
+        },
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:trendview2/card_creation_sri.txt'; // For Uri encoding
+
+List<Map<String, dynamic>> listItems = [
+  {
+    'title': 'Get unlimited access',
+  },
+  {
+    'title': 'Live',
+  },
+  {
+    'title': 'Discover',
+  },
+  {
+    'title': 'World',
+  },
+  {
+    'title': 'Sport',
+  },
+  {
+    'title': 'Culture',
+  },
+  {
+    'title': 'Environment',
+  },
+  {
+    'title': 'Business',
+  },
+  {
+    'title': 'Education',
+  },
+  {
+    'title': 'Fashion',
+  },
+  {
+    'title': 'Tech',
+  },
+];
+
+String buildUrl(String title) {
+  String apiKey = '51a0cfa0f4d241058acee64366ff25b1';
+  String value = title;
+  return 'https://newsapi.org/v2/everything?q=$value&pageSize=5&apiKey=$apiKey';
+}
+
+List<Widget> buildListItems(
+    BuildContext context, List<Map<String, dynamic>> listItems) {
+  return listItems.map<Widget>((item) {
+    if (item.containsKey('subItems')) {
+      return Container(
+        width: double.infinity,
+        // color: Color.fromARGB(204, 0, 0,0),
+        margin: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            dividerColor:
+                Color.fromARGB(0, 208, 208, 208), // Remove divider lines
+            iconTheme: IconThemeData(
+                color: Colors.transparent), // Hide the default arrow icon
+          ),
+          child: ExpansionTile(
+            title: Container(
+              decoration: BoxDecoration(
+                color: Color(0xFF5A5859),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    item['title'],
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.white),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            trailing: Container(
+              decoration: BoxDecoration(
+                color: Color(
+                    0xFF5A5859), // Background color for the trailing container
+                borderRadius: BorderRadius.circular(15), // Rounded corners
+              ),
+              padding: EdgeInsets.all(8), // Padding inside the container
+              child: Icon(Icons.expand_more,
+                  color: Colors.white), // Default arrow icon
+            ),
+            children: item['subItems'].map<Widget>((subItem) {
+              return ListTile(
+                title: Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFF5A5859),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  child: Text(
+                    subItem['title'],
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.white),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                onTap: () {
+                  String url = buildUrl(subItem['title']);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ApiCardScreen(url: url),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        width: double.infinity,
+        // color: Color.fromARGB(204, 0, 0,0),
+        margin: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: ListTile(
+          title: Container(
+            decoration: BoxDecoration(
+              color: Color(0xFF5A5859),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            child: Text(
+              item['title'],
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Colors.white),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          onTap: () {
+            String url = buildUrl(item['title']);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ApiCardScreen(url: url),
+              ),
+            );
+          },
+        ),
+      );
+    }
+  }).toList();
+}
+
+
+
+
+
+
+
+
+
+
+/* 
+title = followed_users['wired']['name']
+description = title = followed_users['wired']['name']
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+  Widget followList() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.5,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              color: const Color(0xFF5A5859).withOpacity(0.8),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: List.generate(4, (index) {
+                  return Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 5.0),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(204, 0, 0, 0),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.only(left: 15),
+                        title: const Text(
+                          'No Title',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'No Author',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 162, 151, 151),
+                          ),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.keyboard_arrow_right),
+                          color: Colors.white,
+                          onPressed: () {
+                            setState(() {
+                              // Logic for button press
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
+// import 'dart:async';
+// import 'package:flutter/material.dart';
+// import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+//
+// import 'Viewall_break.dart';
+// import 'Viewall_recom.dart';
+// import 'list_cards.dart';
+//
+// void main() {
+//   runApp(MyApp());
+// }
+//
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       home: HomeScreen(),
+//     );
+//   }
+// }
+//
+// class HomeScreen extends StatefulWidget {
+//   const HomeScreen({super.key});
+//
+//   @override
+//   State<HomeScreen> createState() => _HomeScreenState();
+// }
+//
+// class _HomeScreenState extends State<HomeScreen> {
+//   final PageController _pageController = PageController();
+//   int _currentPage = 0;
+//   late Timer _scrollTimer;
+//
+//   final List<Map<String, String>> _newsData = [
+//     {
+//       'imageUrl': "https://d.newsweek.com/en/full/2434469/shrek-princess-fiona.jpg",
+//       'title': "'Shrek 5': Everything We Know About the Upcoming Film",
+//       'publishedDate': "2024-07-27T09:00:02Z",
+//     },
+//     {
+//       'imageUrl': "https://focus.independent.ie/thumbor/au9QRv3poESM9JHZXliqnbPsOBM=/0x35:3128x2120/629x0/prod-mh-ireland/8001385e-864c-4dd8-b49b-0c8470e1dd21/b5fcecb2-2a82-4868-8157-d3bb707f315e/8001385e-864c-4dd8-b49b-0c8470e1dd21.jpg",
+//       'title': "‘We did everything with permission from the FAI’ – Alan Reynolds insists Bohs in the right despite FAI Cup appeal from Rovers",
+//       'publishedDate': "2024-07-27T08:53:15Z",
+//     },
+//     {
+//       'imageUrl': "https://focus.independent.ie/thumbor/zwVBqCRtfSZ9CBMP99sadcnn1YE=/60x0:735x450/629x0/prod-mh-ireland/860f0497-deaf-4ee6-a782-d4f16e61b749/2a11f785-7cf6-4d16-b2ff-1e2ce2f3df64/video/video.jpg",
+//       'title': "‘Secret is everything in moderation’, says Ireland’s oldest man as he celebrates 108th birthday",
+//       'publishedDate': "2024-07-27T08:15:08Z",
+//     },
+//     {
+//       'imageUrl': "https://www.cheatsheet.com/wp-content/uploads/2024/07/Pharrell-Williams-Olympics.webp?w=1200",
+//       'title': "R&B Singer Pharrell LOOKS LIKE A WOMAN Now … SEEN OUT Carrying A PURSE & Everything!!",
+//       'publishedDate': "2024-07-27T06:22:00Z",
+//     },
+//     {
+//       'imageUrl': "https://www.gizchina.com/wp-content/uploads/images/2024/07/Samsung-warning-ftr.jpg",
+//       'title': "iPhone-Like Security Now on Samsung Smartphones: Everything You Need to Know",
+//       'publishedDate': "2024-07-27T01:30:00Z",
+//     },
+//   ];
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//
+//     // Initialize automatic page scrolling with increased time
+//     _scrollTimer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+//       if (_pageController.hasClients) {
+//         int nextPage = (_currentPage + 1) % 5;
+//         _pageController.animateToPage(
+//           nextPage,
+//           duration: Duration(milliseconds: 300),
+//           curve: Curves.easeInOut,
+//         );
+//       }
+//     });
+//
+//     // Listen for page changes
+//     _pageController.addListener(() {
+//       setState(() {
+//         _currentPage = _pageController.page?.round() ?? 0;
+//       });
+//     });
+//   }
+//
+//   @override
+//   void dispose() {
+//     _scrollTimer.cancel();
+//     _pageController.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: Stack(
+//         children: <Widget>[
+//           // Background Container with Gradient
+//           Container(
+//            // color: Color.fromARGB(204, 0, 0, 0),
+//           decoration: BoxDecoration(
+//               image: DecorationImage(
+//               image: AssetImage('assets/blurr_greenlight.jpeg'),
+//               fit: BoxFit.cover, // This will cover the entire container
+//                  ),)
+//           ),
+//           // Back arrow icon at the top of the screen
+//           Positioned(
+//             top: 15,
+//             left: 5,
+//             right: 5,
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 IconButton(
+//                   icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+//                   onPressed: () {
+//                     Navigator.pop(context);
+//                   },
+//                 ),
+//                 CircleAvatar(
+//                   radius: 20.0,
+//                   child: Icon(Icons.person, color: Colors.white), // profile icon
+//                   backgroundColor: Colors.transparent, // set the background color if needed
+//                 ),
+//               ],
+//             ),
+//           ),
+//
+//
+//           // Scrollable content
+//           Padding(
+//             padding: const EdgeInsets.only(top: 70.0), // Add padding to avoid collision with back arrow
+//             child: CustomScrollView(
+//               slivers: [
+//                 SliverToBoxAdapter(
+//                   child: Column(
+//                     children: [
+//                       // Container with "Breaking News" title and "View All" text
+//                       Container(
+//                         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+//                         child: Row(
+//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                           children: [
+//                             Text(
+//                               'Latest News',
+//                               style: TextStyle(
+//                                 fontSize: 34,
+//                                 fontWeight: FontWeight.bold,
+//                                 color: Colors.white,
+//                               ),
+//                             ),
+//                             GestureDetector(
+//                               onTap: () {
+//                                 Navigator.push(
+//                                   context,
+//                                   MaterialPageRoute(
+//                                     builder: (context) => BreakPage(
+//                                       value: 'everything',
+//                                       //newsHeadlines: _newsHeadlines,
+//                                     ),
+//                                   ),
+//                                 );
+//                               },
+//                               child: Text(
+//                                 'View All',
+//                                 style: TextStyle(
+//                                   fontSize: 20,
+//                                   color: Colors.white,
+//                                  // decoration: TextDecoration.underline,
+//                                 ),
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                       // PageView with animated cards
+//                       GestureDetector(
+//                         onTap: () {
+//                           int nextPage = (_currentPage + 1) % 5;
+//                           _pageController.animateToPage(
+//                             nextPage,
+//                             duration: Duration(milliseconds: 300),
+//                             curve: Curves.easeInOut,
+//                           );
+//                         },
+//                         child: Container(
+//                           height: 250,
+//                           child: PageView.builder(
+//                             controller: _pageController,
+//                             itemCount: _newsData.length, // Show only the first 5 items
+//                             itemBuilder: (context, index) {
+//                               final newsItem = _newsData[index];
+//                               return _buildNewsCard(
+//                                 imageUrl: newsItem['imageUrl'] ?? '',
+//                                 title: newsItem['title'] ?? '',
+//                                 publishedDate: newsItem['publishedDate'] ?? '',
+//                               );
+//                             },
+//                           ),
+//                         ),
+//                       ),
+//                       SizedBox(
+//                         height: 15,
+//                       ),
+//                       // Dots Indicator
+//                       _buildDotsIndicator(),
+//                       SizedBox(
+//                         height: 15,
+//                       ),
+//                       // Container with "Recommended" title and "View All" text
+//                       Container(
+//                         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+//                         child: Row(
+//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                           children: [
+//                             Text(
+//                               'Recommended',
+//                               style: TextStyle(
+//                                 fontSize: 34,
+//                                 fontWeight: FontWeight.bold,
+//                                 color: Colors.white,
+//                               ),
+//                             ),
+//                             GestureDetector(
+//                               onTap: () {
+//                                 Navigator.push(
+//                                   context,
+//                                   MaterialPageRoute(
+//                                     builder: (context) => CardRecommend(
+//                                       value: 'everything',
+//                                     ),
+//                                   ),
+//                                 );
+//                               },
+//                               child: Text(
+//                                 'View All',
+//                                 style: TextStyle(
+//                                   fontSize: 20,
+//                                   color: Colors.white,
+//                                   //decoration: TextDecoration.underline,
+//                                 ),
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//                 SliverFillRemaining(
+//                   child: listCards(value: 'everything'),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Widget _buildDotsIndicator() {
+//     return SmoothPageIndicator(
+//       controller: _pageController, // PageController
+//       count: _newsData.length, // Number of dots
+//       effect: ScaleEffect(
+//         dotHeight: 8.0,
+//         dotWidth: 8.0,
+//         scale: 1.5, // Increase the size of the selected dot
+//         activeDotColor: Colors.white,
+//         dotColor: Colors.grey,
+//         spacing: 5.0,
+//       ),
+//     );
+//   }
+//
+//   String limitWords(String text, int wordLimit) {
+//     List<String> words = text.split(' ');
+//     if (words.length > wordLimit) {
+//       return words.sublist(0, wordLimit).join(' ') + '...';
+//     }
+//     return text;
+//   }
+//
+//   Widget _buildNewsCard({required String imageUrl, required String title, required String publishedDate}) {
+//     const int titleWordLimit = 5;
+//     const int dateWordLimit = 5;
+//
+//     return Container(
+//       padding: EdgeInsets.all(8.0),
+//       margin: EdgeInsets.all(10),
+//       decoration: BoxDecoration(
+//         image: DecorationImage(
+//           image: NetworkImage(imageUrl),
+//           fit: BoxFit.cover,
+//         ),
+//         borderRadius: BorderRadius.circular(15.0),
+//       ),
+//       child: Stack(
+//         children: [
+//           Positioned(
+//             left: 10,
+//             bottom: 8,
+//             right: 10,
+//             child: Container(
+//               color: Colors.black54,
+//               padding: EdgeInsets.all(5.0),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text(
+//                     limitWords(title, titleWordLimit),
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 16.0,
+//                     ),
+//                   ),
+//                   Text(
+//                     limitWords(publishedDate, dateWordLimit),
+//                     style: TextStyle(
+//                       color: Colors.white70,
+//                       fontSize: 12.0,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+// }
+//
+//
